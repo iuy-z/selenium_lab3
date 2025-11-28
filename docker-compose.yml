@@ -1,0 +1,18 @@
+version: "3.8"
+
+services:
+  webapp:
+    build: ./webapp
+    container_name: webapp
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=development
+
+  selenium_tests:
+    build: ./selenium_tests
+    container_name: selenium_tests
+    depends_on:
+      - webapp
+    # Use network mode so Selenium tests can reach the web app
+    network_mode: "service:webapp"
