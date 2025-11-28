@@ -1,0 +1,23 @@
+FROM python:3.10-slim
+
+# Set working directory
+WORKDIR /tests
+
+# Copy test scripts
+COPY selenium_tests/ .
+
+# Install Selenium and Chromium for headless testing
+RUN apt-get update && apt-get install -y \
+    chromium \
+    chromium-driver \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip install --no-cache-dir selenium
+
+# Set environment variable so Selenium uses Chromium
+ENV CHROME_BIN=/usr/bin/chromium
+ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
+
+# Run default Selenium test
+CMD ["python", "test_homepage.py"]
