@@ -2,7 +2,7 @@ pipeline {
     agent any
     environment {
         DOCKER_HUB_USER = 'irum90'
-        DOCKER_HUB_PASS = credentials('docker-hub-password') // add in Jenkins
+        DOCKER_HUB_PASS = credentials('dockerhub_creds') // add in Jenkins
     }
     stages {
         stage('Code Linting') {
