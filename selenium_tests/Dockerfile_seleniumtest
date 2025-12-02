@@ -1,23 +1,31 @@
-FROM python:3.10-slim
+FROM python:3.9-slim
 
-# Set working directory
-WORKDIR /tests
+WORKDIR /selenium_tests
 
-# Copy test scripts
-COPY selenium_tests/ .
-
-# Install Selenium and Chromium for headless testing
+# Install Chrome and dependencies
 RUN apt-get update && apt-get install -y \
-    chromium \
-    chromium-driver \
+    wget \
+    gnupg \
+    unzip \
+    curl \
+    && wget -q -O /tmp/google-chrome-key.pub https://dl-ssl.google.com/linux/linux_signing_key.pub \
+    && cat /tmp/google-chrome-key.pub | gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg \
+    && echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Python dependencies
-RUN pip install --no-cache-dir selenium
+# Install ChromeDriver
+RUN CHROME_DRIVER_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE) \
+    && wget -O /tmp/chromedriver.zip https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
+    && unzip /tmp/chromedriver.zip -d /usr/local/bin/ \
+    && rm /tmp/chromedriver.zip \
+    && chmod +x /usr/local/bin/chromedriver
 
-# Set environment variable so Selenium uses Chromium
-ENV CHROME_BIN=/usr/bin/chromium
-ENV CHROMEDRIVER_PATH=/usr/bin/chromedriver
+COPY requirements.txt .
+RUN pip install --no-cache-dir selenium pytest
 
-# Run default Selenium test
-CMD ["python", "test_homepage.py"]
+COPY selenium_tests/ .
+
+CMD ["pytest", "test_homepage.py"]
+CMD ["pytest", "test_login.py"]
